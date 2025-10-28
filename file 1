@@ -1,0 +1,53 @@
+#ifndef IO_DEVICE_DRIVER_HPP
+#define IO_DEVICE_DRIVER_HPP
+
+#include <cstdint> // for uint8_t, uint32_t, etc.
+#include <cstddef> // for size_t
+
+// ---- External helper functions (provided in inc/ folder) ----
+extern "C" {
+    void set_pin_mode(uint8_t pin, uint8_t direction); // 0=INPUT, 1=OUTPUT, 2=OD_PULLUP
+    void set_pin_output(uint8_t pin, uint8_t state);  // 0=LOW, 1=HIGH
+    uint8_t read_pin_input(uint8_t pin);              // Returns 0 or 1
+    void delay_ms(uint32_t ms);
+}
+
+// ---- Pin Definitions ----
+enum Pin_t {
+    PIN_nRST,
+    PIN_nTEST,
+    PIN_DONE,
+    PIN_SUCCESS,
+    PIN_CTRL,
+    PIN_SELECT
+};
+
+// ---- I/O Device Driver Class ----
+class IODeviceDriver {
+public:
+    enum ConfigMode {
+        MODE_0,
+        MODE_1,
+        MODE_2
+    };
+
+    enum ConfigResult {
+        SUCCESS_NO_ERROR,
+        FAILURE_ERROR,
+        FAILURE_TIMEOUT
+    };
+
+    IODeviceDriver();
+
+    // Implement the 3 modes
+    ConfigResult configure_mode_0(const uint8_t* data, size_t size);
+    ConfigResult configure_mode_1();
+    ConfigResult configure_mode_2();
+
+private:
+    ConfigResult wait_for_done(uint32_t max_wait_ms);
+    void enter_config(ConfigMode mode);
+    void exit_config();
+};
+
+#endif // IO_DEVICE_DRIVER_HPP
